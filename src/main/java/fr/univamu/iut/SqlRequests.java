@@ -22,6 +22,9 @@ public class SqlRequests {
         stmt = conn.createStatement();
         String sql;
         sql = query;
-        return stmt.executeQuery(sql);
+        ResultSet rs = stmt.executeQuery(sql);
+        conn.close();
+        stmt.close();
+        return rs;
     }
 }

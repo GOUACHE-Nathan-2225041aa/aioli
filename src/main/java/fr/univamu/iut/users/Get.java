@@ -1,28 +1,31 @@
-package fr.univamu.iut.plats;
+package fr.univamu.iut.users;
 
-import jakarta.ws.rs.*;
+import fr.univamu.iut.SqlRequests;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import fr.univamu.iut.SqlRequests;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-@Path("/plat")
-public class GetPlats {
+@Path("/utilisateurs")
+public class Get {
     @GET
-    @Produces("text/plain")
-    @Path("/getIdByName/{name}")
-    public String getIdByName(@PathParam("name") String name) throws SQLException, ClassNotFoundException {
-        ResultSet resultSet = SqlRequests.executeQuery("SELECT id FROM Plats WHERE nom='" + name + "'");
+    @Produces
+    public String get() throws SQLException, ClassNotFoundException {
+        ResultSet resultSet = SqlRequests.executeQuery("SELECT * FROM Utilisateurs ");
         JSONArray result = new JSONArray();
 
         try {
             while (resultSet.next()) {
                 JSONObject row = new JSONObject();
                 int id = resultSet.getInt("id");
+                String nom = resultSet.getString("nom");
                 row.put("id", id);
+                row.put("nom", nom);
                 result.put(row);
             }
         } catch (SQLException e) {
@@ -31,11 +34,12 @@ public class GetPlats {
 
         return result.toString();
     }
+
     @GET
     @Produces("text/plain")
-    @Path("/getNameById/{id}")
+    @Path("/{id}")
     public String getNameById(@PathParam("id") String id) throws SQLException, ClassNotFoundException {
-        ResultSet resultSet = SqlRequests.executeQuery("SELECT nom FROM Plats WHERE id='" + id + "'");
+        ResultSet resultSet = SqlRequests.executeQuery("SELECT * FROM Utilisateurs WHERE id='" + id + "'");
         JSONArray result = new JSONArray();
 
         try {
