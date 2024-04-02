@@ -11,7 +11,6 @@ import org.json.JSONObject;
 
 @Path("/plat")
 public class GetPlats {
-
     @GET
     @Produces("text/plain")
     @Path("/getIdByName/{name}")
@@ -22,11 +21,28 @@ public class GetPlats {
         try {
             while (resultSet.next()) {
                 JSONObject row = new JSONObject();
-                // Récupérer la valeur de la colonne "id"
                 int id = resultSet.getInt("id");
-                // Stocker la valeur dans le JSONObject
-                row.put("Id", id);
-                // Ajouter l'objet à la JSONArray
+                row.put("id", id);
+                result.put(row);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return result.toString();
+    }
+    @GET
+    @Produces("text/plain")
+    @Path("/getNameById/{id}")
+    public String getNameById(@PathParam("id") String id) throws SQLException, ClassNotFoundException {
+        ResultSet resultSet = SqlRequests.executeQuery("SELECT nom FROM Plats WHERE id='" + id + "'");
+        JSONArray result = new JSONArray();
+
+        try {
+            while (resultSet.next()) {
+                JSONObject row = new JSONObject();
+                String nom = resultSet.getString("nom");
+                row.put("Nom", nom);
                 result.put(row);
             }
         } catch (SQLException e) {
