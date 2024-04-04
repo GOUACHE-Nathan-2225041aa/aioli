@@ -15,7 +15,7 @@ import java.util.ArrayList;
 @Path("/menus")
 public class Menus {
 
-    /**
+    /** CREATE
      * Crée un nouveau menu avec les plats spécifiés pour un utilisateur donné.
      *
      * @param nom_user Le nom de l'utilisateur.
@@ -36,37 +36,46 @@ public class Menus {
         ArrayList<JSONObject> reponses = new ArrayList<JSONObject>();
 
         // Parcourir les identifiants et récupérer les détails de chaque plat
-        for (String i : identifiants) {
+        for (String id : identifiants) {
             Client client = ClientBuilder.newClient();
-            String response = client.target("http://localhost:8080/Plats_et_users-1.0-SNAPSHOT/api/plats/" + i)
+            String response = client.target("http://localhost:8080/Plats_et_users-1.0-SNAPSHOT/api/plats/" + id)
                     .request(MediaType.TEXT_PLAIN_TYPE).get(String.class);
-
             reponses.add(new JSONObject(response));
         }
 
         // Calculer le prix total des plats sélectionnés
         double prixFinal = 0;
 
+        // Permet de stock les noms des plats associés aux IDs
+        StringBuilder listePlats = new StringBuilder();
+
+        // Ajouter le prix de chaque plat au prixFinal, ainsi que leur nom dans listePlats
+        for (JSONObject answ : reponses) {
+            prixFinal += answ.getDouble("prix");
+            listePlats.append(answ.getString("nom")).append(", ");
+        }
+        // Suprime la virgule de fin
+        if (listePlats.length() > 0) {
+            listePlats.deleteCharAt(listePlats.length() - 1);
+            listePlats.deleteCharAt(listePlats.length() - 1);
+        }
+
         // Obtenir la date actuelle au format SQL
         java.util.Date date = new java.util.Date();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         String sqlDate = sdf.format(date);
 
-        // Ajouter le prix de chaque plat à prixFinal
-        for (JSONObject a : reponses) {
-            prixFinal += a.getDouble("prix");
-        }
-
         // Insérer le nouveau menu dans la base de données
         try {
-            SqlRequests.executeQuery("INSERT INTO Menus (nom_user, date_creation, plats, prix) VALUES ('" + nom_user + "', '" + sqlDate + "', '" + plats + "', " + prixFinal + ")");
+            SqlRequests.executeQuery("INSERT INTO Menus (nom_user, date_creation, plats, prix) VALUES ('" + nom_user + "', '" + sqlDate + "', '{" + listePlats + "}', " + prixFinal + ")");
         } catch (SQLException | ClassNotFoundException e) {
             return false;
         }
         return true;
     }
 
-    /**
+
+    /** READ (ALL)
      * Récupère tous les menus disponibles.
      *
      * @return Une chaîne JSON représentant tous les menus.
@@ -101,7 +110,7 @@ public class Menus {
         return result.toString().replace("[", "{").replace("]", "}");
     }
 
-    /**
+    /** READ (ID)
      * Récupère un menu spécifique en fonction de son identifiant.
      *
      * @param id L'identifiant du menu à récupérer.
@@ -134,10 +143,72 @@ public class Menus {
             e.printStackTrace();
         }
 
-        return result.toString().replace("[", "{").replace("]", "}");
+        return result.toString().replace("[", "").replace("]", "");
     }
 
-    /**
+
+    /** UPDATE (ID)
+     * Met à jour les informations d'un menu existant.
+     *
+     * @param nom_user     Le nouveau nom de l'utilisateur.
+     * @param plats        Les identifiants des plats à inclure dans le menu (séparés par des virgules).
+     * @param id           L'identifiant du menu à mettre à jour.
+     * @return true si le menu a été mis à jour avec succès, false sinon.
+     */
+    @PUT
+    @Consumes("application/x-www-form-urlencoded")
+    public boolean updateMenu(@FormParam("nom_user") String nom_user, @FormParam("plats") String plats, @FormParam("id") int id) {
+        // Supprimer les crochets de la chaîne plats
+        plats = plats.replace("[", "").replace("]", "");
+
+        // Diviser les identifiants des plats en une liste
+        String[] identifiants = plats.split(",");
+
+        // Liste pour stocker les réponses des requêtes pour chaque plat
+        ArrayList<JSONObject> reponses = new ArrayList<>();
+
+        // Parcourir les identifiants et récupérer les détails de chaque plat
+        for (String platId : identifiants) {
+            Client client = ClientBuilder.newClient();
+            String response = client.target("http://localhost:8080/Plats_et_users-1.0-SNAPSHOT/api/plats/" + platId)
+                    .request(MediaType.TEXT_PLAIN_TYPE).get(String.class);
+            reponses.add(new JSONObject(response));
+        }
+
+        // Calculer le prix total des plats sélectionnés
+        double prixFinal = 0;
+
+        // Permet de stock les noms des plats associés aux IDs
+        StringBuilder listePlats = new StringBuilder();
+
+        // Ajouter le prix de chaque plat au prixFinal, ainsi que leur nom dans listePlats
+        for (JSONObject answ : reponses) {
+            prixFinal += answ.getDouble("prix");
+            listePlats.append(answ.getString("nom")).append(", ");
+        }
+
+        // Supprimer la virgule finale si la liste des plats n'est pas vide
+        if (listePlats.length() > 0) {
+            listePlats.deleteCharAt(listePlats.length() - 1);
+            listePlats.deleteCharAt(listePlats.length() - 1);
+        }
+
+        // Obtenir la date actuelle au format SQL
+        java.util.Date currentDate = new java.util.Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String date = sdf.format(currentDate);
+
+        // Mettre à jour le menu dans la base de données
+        try {
+            SqlRequests.executeQuery("UPDATE Menus SET nom_user='" + nom_user + "', plats='{" + listePlats + "}', prix=" + prixFinal + ", date_creation='" + date + "' WHERE id=" + id);
+        } catch (SQLException | ClassNotFoundException e) {
+            return false;
+        }
+        return true;
+    }
+
+
+    /** DELETE (ID)
      * Supprime un menu existant en fonction de son identifiant.
      *
      * @param id L'identifiant du menu à supprimer.
