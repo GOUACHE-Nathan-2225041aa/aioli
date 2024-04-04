@@ -107,7 +107,7 @@ public class Menus {
             e.printStackTrace();
         }
 
-        return result.toString().replace("[", "{").replace("]", "}");
+        return result.toString();
     }
 
     /** READ (ID)
@@ -121,7 +121,7 @@ public class Menus {
     @GET
     @Produces("text/plain")
     @Path("/{id}")
-    public String getNameById(@PathParam("id") String id) throws SQLException, ClassNotFoundException {
+    public String getWithId(@PathParam("id") String id) throws SQLException, ClassNotFoundException {
         ResultSet resultSet = SqlRequests.executeQuery("SELECT nom_user, plats, date_creation, prix FROM Menus WHERE id='" + id + "'");
         JSONArray result = new JSONArray();
 
@@ -143,7 +143,7 @@ public class Menus {
             e.printStackTrace();
         }
 
-        return result.toString().replace("[", "").replace("]", "");
+        return result.toString().replace("[", "{").replace("]", "}");
     }
 
 
@@ -157,7 +157,7 @@ public class Menus {
      */
     @PUT
     @Consumes("application/x-www-form-urlencoded")
-    public boolean updateMenu(@FormParam("nom_user") String nom_user, @FormParam("plats") String plats, @FormParam("id") int id) {
+    public boolean updateMenu(@FormParam("id") int id, @FormParam("nom_user") String nom_user, @FormParam("plats") String plats) {
         // Supprimer les crochets de la chaîne plats
         plats = plats.replace("[", "").replace("]", "");
 
