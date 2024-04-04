@@ -13,10 +13,10 @@ public class Post {
 
     @POST
     @Consumes("application/x-www-form-urlencoded")
-    public boolean createPlat(@FormParam("name") String name){
+    public boolean createPlat(@FormParam("nom") String nom){
 
         try{
-            SqlRequests.executeQuery("INSERT INTO Utilisateurs (nom) VALUES ('"+name+"')");
+            SqlRequests.executeQuery("INSERT INTO Utilisateurs (nom) VALUES ('"+nom+"')");
         }
         catch(SQLException | ClassNotFoundException e){
             return false;

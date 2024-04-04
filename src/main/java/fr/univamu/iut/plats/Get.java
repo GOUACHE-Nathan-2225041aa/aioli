@@ -12,7 +12,6 @@ import org.json.JSONObject;
 @Path("/plats")
 public class Get {
     @GET
-    @Produces
     public String get() throws SQLException, ClassNotFoundException {
         ResultSet resultSet = SqlRequests.executeQuery("SELECT * FROM Plats ");
         JSONArray result = new JSONArray();
@@ -22,8 +21,12 @@ public class Get {
                 JSONObject row = new JSONObject();
                 int id = resultSet.getInt("id");
                 String nom = resultSet.getString("nom");
+                float prix = resultSet.getFloat("prix");
+                String description = resultSet.getString("description");
                 row.put("id", id);
                 row.put("nom", nom);
+                row.put("prix", prix);
+                row.put("description", description);
                 result.put(row);
             }
         } catch (SQLException e) {
