@@ -30,7 +30,7 @@ public class Get {
             e.printStackTrace();
         }
 
-        return result.toString();
+        return result.toString().replace("[", "{").replace("]", "}");
     }
 
     @GET
